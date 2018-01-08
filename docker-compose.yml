@@ -2,7 +2,7 @@
 nginx:
   image: nginx:latest
   ports:
-    - "80:80"
+    - "8080:80"
     # - "443:443"
   volumes:
     # app
@@ -16,8 +16,9 @@ nginx:
   links:
     - fpm:__DOCKER_PHP_FPM__
 # php-fpm
-fpm:
-  image: php:7.1-fpm
+fpm:  
+  build: ./php-fpm
+  working_dir: /usr/share/nginx/html
   ports: 
     - "9000:9000"
   volumes: 
@@ -44,3 +45,21 @@ mysql:
     - ./mysql:/var/lib/mysql
   environment:
     - MYSQL_ROOT_PASSWORD=123456
+phpmyadmin:
+  image: phpmyadmin/phpmyadmin
+  environment:
+    - PMA_HOST=mysql
+  restart: always
+  ports:
+    - 8000:80
+  links:
+    - mysql:mysql
+varnish:
+  image: jonbaldie/varnish
+  links:
+    - nginx:backend-host
+  volumes:
+    - ./varnish/default.vcl:/etc/varnish/default.vcl
+  ports:
+    - "80:80"
+  restart: unless-stopped
